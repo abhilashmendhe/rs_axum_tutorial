@@ -10,12 +10,15 @@ mod read_middleware_custom_header;
 mod set_middleware_custom_header;
 mod always_errors;
 mod returns_201;
+mod get_json;
+mod validate_with_serde;
+mod custom_json_extractor;
 
 use axum::{http::Method, middleware, routing::{get, post}, Extension, Router};
 use tower_http::cors::{Any, CorsLayer};
 
 use crate::routes::{
-    always_errors::always_errors, hello_world::hello_world, middleware_message::middleware_message, mirror_body_json::mirror_body_json, mirror_body_string::mirror_body_string, mirror_custom_headers::mirror_custom_header, mirror_user_agent::mirror_user_agent, path_variables::{hard_coded_path, path_variables}, query_params::query_params, read_middleware_custom_header::read_middleware_custom_header, returns_201::returns_201, set_middleware_custom_header::set_middleware_custom_header
+    always_errors::always_errors, custom_json_extractor::{custom_json_extractor}, get_json::get_json, hello_world::hello_world, middleware_message::middleware_message, mirror_body_json::mirror_body_json, mirror_body_string::mirror_body_string, mirror_custom_headers::mirror_custom_header, mirror_user_agent::mirror_user_agent, path_variables::{hard_coded_path, path_variables}, query_params::query_params, read_middleware_custom_header::read_middleware_custom_header, returns_201::returns_201, set_middleware_custom_header::set_middleware_custom_header, validate_with_serde::validate_with_serde
 };
 
 #[derive(Debug, Clone)]
@@ -48,5 +51,9 @@ pub async fn create_routes() -> Router  {
         // make sure if anything after the layers wont' be able to access the data from the middleware to the routes
         .route("/always_errors", get(always_errors))
         .route("/returns_201", post(returns_201))
+        .route("/get_json", get(get_json))
+        .route("/validate_data", post(validate_with_serde))
+        .route("/custom_json_extractor", post(custom_json_extractor))
+        // .layer(middleware::from_fn(inject_user_ctx))
 }
 

@@ -3,6 +3,14 @@ name = "axum_playlist"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name="routing"
+path="src/routing/main.rs"
+
+[[bin]]
+name="data"
+path="src/data/main.rs"
+
 [dependencies]
 axum = "0.8.4"
 axum-extra = { version = "0.10.1", features = ["typed-header"] }

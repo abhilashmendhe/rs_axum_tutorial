@@ -1,5 +1,5 @@
 pub mod helper;
-// pub mod database;
+pub mod database;
 pub mod routes;
 
 use std::env::current_dir;

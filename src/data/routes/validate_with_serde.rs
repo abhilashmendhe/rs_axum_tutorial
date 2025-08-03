@@ -4,9 +4,9 @@ use validator::Validate;
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 pub struct RequestUser {
-    #[validate(email(message="must be a valid email"))]
+    // #[validate(email(message="must be a valid email"))]
     pub username: String,
-    #[validate(length(min=8,message="must have atleast 8 characters"))]
+    // #[validate(length(min=8,message="must have atleast 8 characters"))]
     pub password: String
 }
 

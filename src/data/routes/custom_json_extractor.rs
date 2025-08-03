@@ -11,7 +11,7 @@ use crate::routes::validate_with_serde::RequestUser;
 
 impl<S> FromRequest<S> for RequestUser 
 where 
-    S: Send + Sync {
+    S: Send + Sync + Clone {
     type Rejection = (StatusCode, String);
     async  fn from_request(req:axum::extract::Request, _state: &S,) -> Result<Self,Self::Rejection> {
         let Json(user) = req

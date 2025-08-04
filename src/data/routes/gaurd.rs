@@ -2,7 +2,7 @@ use axum::{body::Body, http::{Request, StatusCode}, middleware::Next, response::
 use headers::{authorization::Bearer, Authorization, HeaderMapExt};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 
-use crate::database::users;
+use crate::{database::users, utils::jwt::is_valid};
 use crate::database::users::Entity as Users;
 
 pub async fn gaurd(
@@ -16,17 +16,22 @@ pub async fn gaurd(
                 .ok_or(StatusCode::BAD_REQUEST)?
                 .token()
                 .to_owned();
+    
+    
     let database = request
                     .extensions()
                     .get::<DatabaseConnection>()
                     .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let user = Users::find()
-                .filter(users::Column::Token.eq(Some(token)))
+                .filter(users::Column::Token.eq(Some(token.clone())))
                 .one(database)
                 .await
                 .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     
+    // Validating token after getting from the database to obfuscate that the token is string. 
+    is_valid(&token)?;
+
     let Some(user) = user else {return Err(StatusCode::UNAUTHORIZED)};
     request
         .extensions_mut()

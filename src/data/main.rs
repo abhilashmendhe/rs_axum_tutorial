@@ -1,6 +1,7 @@
 pub mod helper;
 pub mod database;
 pub mod routes;
+pub mod utils;
 
 use std::env::current_dir;
 

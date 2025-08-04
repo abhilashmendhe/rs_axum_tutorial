@@ -2,7 +2,7 @@ use axum::{http::StatusCode, Extension, Json};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter};
 use serde::{Deserialize, Serialize};
 
-use crate::database::users::{self, Entity as Users, Model};
+use crate::{database::users::{self, Entity as Users, Model}, utils::jwt::create_jwt};
 
 #[derive(Deserialize)]
 pub struct RequestUser {
@@ -21,10 +21,12 @@ pub async fn create_user(
     Extension(database): Extension<DatabaseConnection>,
     Json(requesr_user): Json<RequestUser>,
 ) -> Result<Json<ResponseUser>, StatusCode> {
+
+    let jwt = create_jwt()?;
     let new_user = users::ActiveModel {
         username: Set(requesr_user.username),
         password: Set(hash_password(requesr_user.password)?),
-        token: Set(Some("bla123123asdf".to_string())),
+        token: Set(Some(jwt)),
         ..Default::default()
     }.save(&database)
     .await
@@ -55,7 +57,7 @@ pub async fn login(
         if !verify_password(requesr_user.password, &db_user.password)? {
             return Err(StatusCode::UNAUTHORIZED);
         }
-        let new_token = "asdf124312asdfasdf123aretlih".to_owned();
+        let new_token = create_jwt()?;
         let mut user = db_user.into_active_model();
 
         user.token = Set(Some(new_token));
@@ -91,7 +93,7 @@ pub async fn logout(
 }
 
 fn hash_password(password: String) -> Result<String, StatusCode> {
-    bcrypt::hash(password, 14)
+    bcrypt::hash(password, 4)
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
 }
 

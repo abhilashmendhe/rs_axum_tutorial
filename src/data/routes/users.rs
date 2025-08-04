@@ -1,6 +1,4 @@
 use axum::{http::StatusCode, Extension, Json};
-use axum_extra::TypedHeader;
-use headers::{authorization::Bearer, Authorization};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter};
 use serde::{Deserialize, Serialize};
 
@@ -25,7 +23,7 @@ pub async fn create_user(
 ) -> Result<Json<ResponseUser>, StatusCode> {
     let new_user = users::ActiveModel {
         username: Set(requesr_user.username),
-        password: Set(requesr_user.password),
+        password: Set(hash_password(requesr_user.password)?),
         token: Set(Some("bla123123asdf".to_string())),
         ..Default::default()
     }.save(&database)
@@ -54,6 +52,9 @@ pub async fn login(
                 .map_err(|_err| StatusCode::INTERNAL_SERVER_ERROR)?;
     
     if let Some(db_user) = db_user {
+        if !verify_password(requesr_user.password, &db_user.password)? {
+            return Err(StatusCode::UNAUTHORIZED);
+        }
         let new_token = "asdf124312asdfasdf123aretlih".to_owned();
         let mut user = db_user.into_active_model();
 
@@ -87,4 +88,13 @@ pub async fn logout(
         .map_err(|_err| StatusCode::INTERNAL_SERVER_ERROR)?;
     
     Ok(())
+}
+
+fn hash_password(password: String) -> Result<String, StatusCode> {
+    bcrypt::hash(password, 14)
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+}
+
+fn verify_password(password: String, hash: &str) -> Result<bool, StatusCode> {
+    bcrypt::verify(password, hash).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
 }
